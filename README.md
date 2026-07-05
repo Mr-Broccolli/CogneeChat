@@ -81,50 +81,54 @@
 ## Directory Structure
 
 ```
-Cognee-Chat/
+Cognee-Chat-v2.0/
 ├── .env                      # LLM keys + backend config (gitignored)
 ├── .env.example              # Template with placeholder values
 ├── .gitignore
 ├── README.md
+├── LICENSE
 ├── requirements.txt          # Python deps (FastAPI, Cognee, LiteLLM, …)
 ├── api.py                    # FastAPI application entry point
+├── start_backend.py          # Uvicorn launcher (writes .port)
 │
-├── app/                      # Next.js App Router
-│   ├── actions.ts            # Prisma server actions (CRUD)
-│   ├── globals.css           # glass utilities, React Flow overrides
-│   ├── layout.tsx            # root layout (dark theme, Inter, Toaster)
-│   └── page.tsx              # main page (sidebar, tabs, state orchestration)
+├── app/                      # Next.js 16 App Router
+│   ├── package.json
+│   ├── next.config.ts
+│   ├── tsconfig.json
+│   ├── postcss.config.mjs
+│   ├── eslint.config.mjs
+│   │
+│   ├── lib/
+│   │   ├── api.ts            # API client (cached base URL)
+│   │   └── db.ts             # better-sqlite3 session CRUD
+│   │
+│   ├── app/
+│   │   ├── globals.css       # CSS custom properties, theme vars
+│   │   ├── layout.tsx        # root layout (sidebar + content)
+│   │   ├── page.tsx          # homepage (redirects to /chat)
+│   │   ├── sidebar.tsx       # nav + session list + graph stats
+│   │   ├── favicon.ico
+│   │   ├── chat/page.tsx     # chat interface
+│   │   ├── graph/page.tsx    # React Flow graph visualization
+│   │   ├── ingest/page.tsx   # text/file ingest + reset
+│   │   ├── settings/page.tsx # model picker, theme toggle, status
+│   │   └── api/
+│   │       ├── port/route.ts
+│   │       └── sessions/
+│   │           ├── route.ts
+│   │           └── [id]/route.ts
+│   │
+│   ├── public/
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   │
+│   └── data/
+│       └── cognee.db        # SQLite (auto-created, gitignored)
 │
-├── components/
-│   ├── chat-interface.tsx    # message list, FastAPI /chat, source badges
-│   ├── ingest-panel.tsx      # text/file ingest with drag‑and‑drop
-│   ├── mind-map.tsx          # React Flow graph, edge‑weight slider
-│   ├── schema-builder.tsx    # entity/relationship type builder
-│   └── ui/                   # Shadcn primitives (button, dialog, dropdown‑menu,
-│                              #   input, label, scroll‑area, slider, tabs,
-│                              #   textarea, toast, toaster, tooltip)
-│
-├── hooks/
-│   └── use-toast.ts          # Shadcn toast state management
-│
-├── lib/
-│   ├── prisma.ts             # Prisma singleton (globalForPrisma)
-│   └── utils.ts              # cn() helper (clsx + tailwind‑merge)
-│
-├── prisma/
-│   └── schema.prisma         # Session + Message models (SQLite)
-│
-├── scripts/
-│   ├── app.py                # Legacy Streamlit dashboard (optional)
-│   ├── test_api.py           # Smoke test suite
-│   ├── test_memory.py        # Memory test script
-│   └── test_pipeline.py      # Pipeline test script
-│
-├── next.config.js            # /api/* → http://127.0.0.1:8001 rewrites
-├── tailwind.config.ts        # custom colors, keyframes (pulse‑glow, …)
-├── tsconfig.json
-├── package.json
-└── postcss.config.js
+└── venv/                     # Python virtual env (gitignored)
 ```
 
 ---

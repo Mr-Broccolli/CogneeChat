@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import 'highlight.js/styles/github-dark.css';
+
+:root {
+  --bg-primary: #0c0e14;
+  --bg-secondary: #161923;
+  --bg-tertiary: #1c1f2a;
+  --bg-card: #212532;
+  --border-primary: #2a2d3a;
+  --border-accent: #3b82f6;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-dim: #699cff;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --danger: #fa746f;
+  --danger-hover: #c54d4a;
+  --text-primary: #e2e5f6;
+  --text-secondary: #a7aaba;
+  --text-muted: #717584;
+}
+
+.light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: #e2e8f0;
+  --border-primary: #cbd5e1;
+  --border-accent: #3b82f6;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-dim: #93c5fd;
+  --accent-green: #16a34a;
+  --accent-red: #dc2626;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-card: var(--bg-card);
+  --color-border-primary: var(--border-primary);
+  --color-border-accent: var(--border-accent);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-green: var(--accent-green);
+  --color-accent-red: var(--accent-red);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 3px; }
+
+.prose pre {
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 12px !important;
+  overflow-x: auto;
+}
+.prose code {
+  font-size: 12px;
+  font-family: var(--font-geist-mono);
+}
+.prose p { margin: 0; }
+.prose p + p { margin-top: 0.75em; }

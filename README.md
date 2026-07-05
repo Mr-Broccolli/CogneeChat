@@ -139,7 +139,7 @@ Cognee-Chat/
 
 ```bash
 git clone https://github.com/Mr-Broccolli/Cognee-Chat-v2.0.git
-cd CogneeChat
+cd Cognee-Chat-v2.0
 ```
 
 ### 2. Frontend

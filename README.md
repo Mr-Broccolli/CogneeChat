@@ -1,201 +1,251 @@
-<p align="center">
-  <img src="https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square" alt="build passing" />
-  <img src="https://img.shields.io/github/license/saltstack/salt" alt="Apache-2.0 License" />
-  <img src="https://img.shields.io/badge/Next.js-14-black.svg?style=flat-square&logo=nextdotjs" alt="Next.js 14" />
-  <img src="https://img.shields.io/badge/FastAPI-teal.svg?style=flat-square&logo=fastapi" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/SQLite-blue.svg?style=flat-square&logo=sqlite" alt="SQLite" />
+<div align="center">
+
+# 🧠 Cognee Chat v2.0
+
+**Talk to your own knowledge graph.**  
+Ingest documents, build a smart graph, and chat with AI that *remembers* connections.
+
+<p>
+  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/FastAPI-teal?style=flat-square&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React_Flow-purple?style=flat-square" alt="React Flow" />
+  <img src="https://img.shields.io/badge/SQLite-blue?style=flat-square&logo=sqlite" alt="SQLite" />
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT License" />
 </p>
 
-<h1 align="center">Cognee Chat</h1>
-<p align="center">
-  <strong>Visually traceable AI reasoning powered by <a href="https://github.com/topoteretes/cognee">Cognee</a>, React Flow, and FastAPI.</strong><br/>
-  Think beyond vector search — build persistent, multi‑hop knowledge graphs that remember.
-</p>
+![Dark mode UI screenshot showing chat interface with sidebar](https://img.shields.io/badge/UI-Dark%20Mode-%230c0e14?style=flat-square)
+
+</div>
 
 ---
 
-## Architecture
+## ✨ What is This?
 
-```
-┌────────────────────────┐
-│  User                  │
-│  (Next.js 14 Browser)  │
-└───────────┬────────────┘
-            │  HTTP (rewrites)
-            ▼
-┌──────────────────────────┐
-│  Next.js 14 App Router   │
-│  • Tailwind / Shadcn UI  │
-│  • React Flow mind map   │
-│  • Prisma ORM client     │
-└───────────┬──────────────┘
-            │  /api/* rewrites → http://127.0.0.1:8001
-            ▼
-┌──────────────────────────┐
-│  FastAPI Backend         │
-│  • /chat – graph recall  │
-│  • /ingest – text & file │
-│  • /graph/visualize      │
-│  • /generate-title       │
-└───────────┬──────────────┘
-            │  cognee SDK
-            ▼
-┌──────────────────────────┐
-│  Cognee Engine           │
-│  • Graph construction    │
-│  • Embedding & storage   │
-│  • Memory persistence    │
-└───────────┬──────────────┘
-            │  SQL via Prisma
-            ▼
-┌──────────────────────────┐
-│  SQLite                  │
-│  (session + chat history)│
-└──────────────────────────┘
-```
+**Cognee Chat** is an AI chat app where you can:
+
+1. **📥 Ingest** — paste text or upload files (.txt, .pdf, .docx, .md)
+2. **🔗 Build a Graph** — the AI automatically finds connections between ideas
+3. **💬 Chat** — ask questions and get answers with context from your data
+
+It uses [Cognee](https://github.com/topoteretes/cognee) (a graph-RAG engine) under the hood, so the AI doesn't just search keywords — it understands relationships between your information.
 
 ---
 
-## Features
-
-### Frontend
-- **Glassmorphism dark UI** — `bg-[#0B0F19]` with Shadcn UI components, Framer Motion animations, and Inter font
-- **Live knowledge‑graph visualization** — React Flow with custom node types, glowing borders, and real‑time diff animations for new nodes/edges
-- **Visual source traceability** — click a source badge to pan‑zoom‑flash the corresponding graph node
-- **Network edge‑weight pruning** — confidence‑threshold slider (0.0–1.0) instantly filters edges, decluttering the graph
-- **Dynamic schema builder** — define entity types and relationships on‑the‑fly; localStorage‑persisted, passed to ingest APIs
-- **Drag‑and‑drop file ingest** — fallback to direct backend URL if multipart rewrites fail
-- **Shadcn DropdownMenu** — Rename / Delete per session via three‑dots menu, with Prisma‑backed server actions
-- **Smart auto‑renaming** — LLM‑generated 2‑3‑word titles fire right after the first message; sidebar stays clean
-
-### Backend (FastAPI + Cognee)
-- **`POST /chat`** — graph‑aware recall → LLM generation with source‑node traceability
-- **`POST /ingest/text`** & **`POST /ingest/file`** — accept text/files, pass as data to `cognee.remember()`
-- **`GET /graph/visualize`** — returns nodes + edges with confidence weights extracted from edge metadata
-- **`POST /generate-title`** — lightweight LLM call to produce a short chat title
-- **`DELETE /reset`** — wipe the knowledge graph entirely
-- **Edge weight extraction** — reads `weight`/`score`/`confidence` from Cognee edge dictionaries; defaults to 0.5
-
----
-
-## Directory Structure
+## 🏗️ How It Works
 
 ```
-Cognee-Chat-v2.0/
-├── .env                      # LLM keys + backend config (gitignored)
-├── .env.example              # Template with placeholder values
-├── .gitignore
-├── README.md
-├── LICENSE
-├── requirements.txt          # Python deps (FastAPI, Cognee, LiteLLM, …)
-├── api.py                    # FastAPI application entry point
-├── start_backend.py          # Uvicorn launcher (writes .port)
-│
-├── app/                      # Next.js 16 App Router
-│   ├── package.json
-│   ├── next.config.ts
-│   ├── tsconfig.json
-│   ├── postcss.config.mjs
-│   ├── eslint.config.mjs
-│   │
-│   ├── lib/
-│   │   ├── api.ts            # API client (cached base URL)
-│   │   └── db.ts             # better-sqlite3 session CRUD
-│   │
-│   ├── app/
-│   │   ├── globals.css       # CSS custom properties, theme vars
-│   │   ├── layout.tsx        # root layout (sidebar + content)
-│   │   ├── page.tsx          # homepage (redirects to /chat)
-│   │   ├── sidebar.tsx       # nav + session list + graph stats
-│   │   ├── favicon.ico
-│   │   ├── chat/page.tsx     # chat interface
-│   │   ├── graph/page.tsx    # React Flow graph visualization
-│   │   ├── ingest/page.tsx   # text/file ingest + reset
-│   │   ├── settings/page.tsx # model picker, theme toggle, status
-│   │   └── api/
-│   │       ├── port/route.ts
-│   │       └── sessions/
-│   │           ├── route.ts
-│   │           └── [id]/route.ts
-│   │
-│   ├── public/
-│   │   ├── file.svg
-│   │   ├── globe.svg
-│   │   ├── next.svg
-│   │   ├── vercel.svg
-│   │   └── window.svg
-│   │
-│   └── data/
-│       └── cognee.db        # SQLite (auto-created, gitignored)
-│
-└── venv/                     # Python virtual env (gitignored)
+                           ┌─────────────────────┐
+                           │   Your Browser       │
+                           │  (Dark mode UI)      │
+                           └──────────┬──────────┘
+                                      │
+                           ┌──────────▼──────────┐
+                           │   Next.js 16        │
+                           │  • Chat, Ingest,    │
+                           │    Graph, Settings  │
+                           └──────────┬──────────┘
+                                      │  fetch() to backend
+                                      ▼
+                           ┌─────────────────────┐
+                           │   FastAPI Backend    │
+                           │  • /chat            │
+                           │  • /ingest          │
+                           │  • /graph/visualize │
+                           │  • /reset           │
+                           └──────────┬──────────┘
+                                      │  cognee SDK
+                                      ▼
+                           ┌─────────────────────┐
+                           │   Cognee Engine     │
+                           │  (Graph-RAG memory) │
+                           └──────────┬──────────┘
+                                      │
+                           ┌──────────▼──────────┐
+                           │   SQLite  +  Kuzu    │
+                           │  sessions  knowledge  │
+                           │           graph      │
+                           └─────────────────────┘
 ```
 
 ---
 
-## Local Setup
+## 🚀 How to Run (Step by Step)
 
-### 0. Prerequisites
-- **Node.js** ≥ 18
-- **Python** ≥ 3.10
+### 📋 What You Need
 
-### 1. Clone & Environment
+| Tool | Version | Why? |
+|------|---------|------|
+| **Python** | 3.10 or newer | Runs the AI backend |
+| **Node.js** | 18 or newer | Runs the web app |
+| **npm** | (comes with Node.js) | Installs frontend packages |
+
+> 💡 **Don't know if you have these?** Open a terminal and type `python --version`, `node --version`, and `npm --version`. If you see numbers, you're good!
+
+---
+
+### 📦 Step 1: Download the Project
+
+Open a **terminal** (Command Prompt on Windows, Terminal on Mac/Linux) and run:
 
 ```bash
+# Download the code
 git clone https://github.com/Mr-Broccolli/Cognee-Chat-v2.0.git
+
+# Go into the project folder
 cd Cognee-Chat-v2.0
 ```
 
-### 2. Backend
+> 📁 The project folder is now at `Cognee-Chat-v2.0/` on your computer.
+
+---
+
+### 🐍 Step 2: Set Up the Backend (Python)
+
+The backend is the "brain" — it processes text and answers your questions.
 
 ```bash
+# Create a virtual environment (a safe sandbox for Python packages)
 python -m venv venv
-.\venv\Scripts\Activate.ps1   # Windows
-source venv/bin/activate      # macOS / Linux
+
+# Activate it:
+# ── Windows ──
+.\venv\Scripts\Activate.ps1
+
+# ── Mac / Linux ──
+source venv/bin/activate
+
+# Install all required Python packages
 pip install -r requirements.txt
+
+# Start the backend!
 python start_backend.py
 ```
 
-### 3. Frontend
+> ✅ **Done right?** You'll see something like: `Uvicorn running on http://127.0.0.1:8000`  
+> The backend writes a `.port` file so the frontend knows where to find it automatically.
+
+> ⏳ **First time?** `pip install` might take 2-3 minutes. That's normal.
+
+> ❌ **Error about `python` not found?** Try `python3` instead.
+
+---
+
+### 🌐 Step 3: Set Up the Frontend (Web App)
+
+**Open a brand new terminal window** (keep the backend running in the first one).
 
 ```bash
-cd app
+# Go into the app folder
+cd Cognee-Chat-v2.0/app
+
+# Install frontend packages
 npm install
-npm run dev                  # http://localhost:3000
+
+# Start the dev server
+npm run dev
 ```
 
-The frontend discovers the backend port automatically via the `.port` file.
+> ✅ **Done right?** Open your browser and go to **http://localhost:3000**  
+> You should see the dark-mode Cognee Chat interface!
 
-### 4. Smoke Test
-
-1. Open `http://localhost:3000`.
-2. Click **Ingest** → paste a paragraph → hit *Ingest Text*.
-3. Switch to **Mind Map** — you should see nodes and edges.
-4. Go back to **Chat** → ask a question about what you ingested.
-5. Click a source badge under the AI reply — the mind map will pan‑zoom and flash the referenced node.
+> ⏳ **First time?** `npm install` might take 1-2 minutes.
 
 ---
 
-## Tech Stack
+### 👟 Step 4: Test It Out
 
-| Layer    | Technology                                          |
-|----------|-----------------------------------------------------|
-| UI       | Next.js 14, Tailwind CSS, Shadcn UI, Framer Motion  |
-| Graph    | React Flow 11                                       |
-| ORM      | Prisma 5 (SQLite)                                   |
-| Backend  | FastAPI, Uvicorn                                    |
-| RAG      | Cognee (open‑source graph‑RAG memory platform)      |
-| LLM      | LiteLLM (OpenRouter → Meta Llama 3.1)               |
-| Embed    | FastEmbed (BAAI/bge‑small‑en‑v1.5)                  |
-| DB       | SQLite                                              |
+1. Open **http://localhost:3000** in your browser
+2. Click **Ingest** in the sidebar (📥 icon)
+3. Paste some text like: *"Albert Einstein was a physicist. He developed the theory of relativity. Marie Curie was a chemist who discovered radium."*
+4. Click **Ingest Text** and wait a few seconds
+5. Click **Graph** (🔗 icon) — you should see nodes and connections
+6. Click **Chat** (💬 icon) and ask: *"What did Einstein do?"*
+7. The AI will answer using your knowledge graph!
 
 ---
 
-## License
-Apache 2.0 — see [LICENSE](LICENSE).
+## 📁 Project Map
+
+```
+Cognee-Chat-v2.0/
+├── .env                    ← Your API keys (keep secret!)
+├── .env.example            ← Shows what .env should look like
+├── requirements.txt        ← What Python packages to install
+├── api.py                  ← Backend code (FastAPI)
+├── start_backend.py        ← Starts the backend for you
+│
+├── app/                    ← The web app (Next.js)
+│   ├── package.json        ← What npm packages to install
+│   ├── next.config.ts      ← Next.js settings
+│   │
+│   ├── lib/
+│   │   ├── api.ts          ← Talks to the backend
+│   │   └── db.ts           ← Saves chat sessions
+│   │
+│   ├── app/                ← All the pages
+│   │   ├── layout.tsx      ← Main layout (sidebar + page)
+│   │   ├── sidebar.tsx     ← Navigation menu
+│   │   ├── chat/page.tsx   ← Chat with AI
+│   │   ├── graph/page.tsx  ← See the knowledge graph
+│   │   ├── ingest/page.tsx ← Upload text/files
+│   │   └── settings/page.tsx ← Settings & theme
+│   │
+│   ├── api/                ← Backend-for-frontend routes
+│   │   ├── port/           ← Reads the port file
+│   │   └── sessions/       ← Saves your chat history
+│   │
+│   └── data/
+│       └── cognee.db       ← Your chat history (SQLite)
+│
+└── venv/                   ← Python virtual environment
+```
 
 ---
 
-<p align="center">
-  Built for <strong>The Hangover Hackathon</strong>
-</p>
+## 🔧 Configuration
+
+### Environment Variables (`.env`)
+
+Create a `.env` file in the project root:
+
+```env
+OPENROUTER_API_KEY=sk-your-key-here
+LLM_MODEL=openrouter/meta-llama/llama-3.1-8b-instruct
+GRAPH_PROVIDER=kuzu
+COGNEE_WIPE_DB_ON_STARTUP=true
+```
+
+> 🔑 **Get an API key:** Sign up at [OpenRouter](https://openrouter.ai) and create a key.
+
+### Available LLM Models
+
+You can change the model in Settings → LLM Model:
+
+| Model | Provider | Cost |
+|-------|----------|------|
+| Llama 3.1 8B | OpenRouter | Free / Cheap |
+| Llama 3.1 70B | OpenRouter | Moderate |
+| Claude 3.5 Sonnet | OpenRouter | Higher |
+| GPT-4o | OpenRouter | Higher |
+| Gemini 2.0 Flash | OpenRouter | Cheap |
+
+---
+
+## 🧩 Tech Stack
+
+| What | Technology |
+|------|-----------|
+| 🎨 UI | Next.js 16, Tailwind CSS v4, React 19 |
+| 🔗 Graph | React Flow 11 + dagre |
+| 💾 Sessions | better-sqlite3 (direct) |
+| ⚙️ Backend | FastAPI + Uvicorn |
+| 🧠 AI Memory | Cognee 1.2.2 (graph-RAG) |
+| 🤖 LLM | LiteLLM + OpenRouter |
+| 📐 Embeddings | FastEmbed (BAAI/bge-small-en-v1.5) |
+| 🕸️ Graph DB | Kuzu |
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).

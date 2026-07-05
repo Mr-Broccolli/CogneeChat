@@ -1,15 +1,15 @@
 <p align="center">
   <img src="https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square" alt="build passing" />
   <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="MIT License" />
-  <img src="https://img.shields.io/badge/Next.js-14-black.svg?style=flat-square&logo=nextdotjs" alt="Next.js 14" />
+  <img src="https://img.shields.io/badge/Next.js-16-black.svg?style=flat-square&logo=nextdotjs" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/FastAPI-teal.svg?style=flat-square&logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/SQLite-blue.svg?style=flat-square&logo=sqlite" alt="SQLite" />
 </p>
 
-<h1 align="center">Cognee Chat</h1>
+<h1 align="center">Cognee Chat v2.0</h1>
 <p align="center">
-  <strong>Visually traceable AI reasoning powered by <a href="https://github.com/topoteretes/cognee">Cognee</a>, React Flow, and FastAPI.</strong><br/>
-  Think beyond vector search — build persistent, multi‑hop knowledge graphs that remember.
+  <strong>Graph‑RAG chat with persistent knowledge graphs, powered by <a href="https://github.com/topoteretes/cognee">Cognee</a>, React Flow, and FastAPI.</strong><br/>
+  Ingest documents → build a knowledge graph → chat with traceable, multi‑hop reasoning.
 </p>
 
 ---
@@ -17,26 +17,23 @@
 ## Architecture
 
 ```
-┌────────────────────────┐
-│  User                  │
-│  (Next.js 14 Browser)  │
-└───────────┬────────────┘
-            │  HTTP (rewrites)
-            ▼
 ┌──────────────────────────┐
-│  Next.js 14 App Router   │
-│  • Tailwind / Shadcn UI  │
-│  • React Flow mind map   │
-│  • Prisma ORM client     │
+│  Next.js 16 App Router   │
+│  • Tailwind CSS v4       │
+│  • React Flow graph      │
+│  • better‑sqlite3 (sess) │
 └───────────┬──────────────┘
-            │  /api/* rewrites → http://127.0.0.1:8001
+            │  fetch() → http://127.0.0.1:{port}
             ▼
 ┌──────────────────────────┐
 │  FastAPI Backend         │
 │  • /chat – graph recall  │
-│  • /ingest – text & file │
+│  • /ingest/text          │
+│  • /ingest/file          │
 │  • /graph/visualize      │
 │  • /generate-title       │
+│  • /reset                │
+│  • /health               │
 └───────────┬──────────────┘
             │  cognee SDK
             ▼
@@ -46,11 +43,12 @@
 │  • Embedding & storage   │
 │  • Memory persistence    │
 └───────────┬──────────────┘
-            │  SQL via Prisma
+            │  kuzu (graph) / SQLite (sessions)
             ▼
 ┌──────────────────────────┐
-│  SQLite                  │
-│  (session + chat history)│
+│  SQLite / Kuzu           │
+│  (knowledge graph +      │
+│   session + chat history)│
 └──────────────────────────┘
 ```
 
@@ -59,72 +57,65 @@
 ## Features
 
 ### Frontend
-- **Glassmorphism dark UI** — `bg-[#0B0F19]` with Shadcn UI components, Framer Motion animations, and Inter font
-- **Live knowledge‑graph visualization** — React Flow with custom node types, glowing borders, and real‑time diff animations for new nodes/edges
-- **Visual source traceability** — click a source badge to pan‑zoom‑flash the corresponding graph node
-- **Network edge‑weight pruning** — confidence‑threshold slider (0.0–1.0) instantly filters edges, decluttering the graph
-- **Dynamic schema builder** — define entity types and relationships on‑the‑fly; localStorage‑persisted, passed to ingest APIs
-- **Drag‑and‑drop file ingest** — fallback to direct backend URL if multipart rewrites fail
-- **Shadcn DropdownMenu** — Rename / Delete per session via three‑dots menu, with Prisma‑backed server actions
-- **Smart auto‑renaming** — LLM‑generated 2‑3‑word titles fire right after the first message; sidebar stays clean
+- **Multi‑page dark‑mode UI** — Chat, Ingest, Graph, and Settings pages with persistent sidebar navigation.
+- **Live knowledge‑graph visualization** — React Flow with dagre auto‑layout, node selection, and search/filter.
+- **Markdown rendering** — AI responses formatted with `react-markdown` and `rehype-highlight` code highlighting.
+- **Persistent sessions** — SQLite‑backed chat sessions survive server restarts; rename or delete from the sidebar.
+- **SSE streaming support** — stop‑generation button; gracefully falls back to non‑streaming when backend returns JSON.
+- **Theme toggle** — switch dark/light mode at runtime via CSS custom properties.
+- **LLM model selector** — pick from 5 presets stored in localStorage.
 
 ### Backend (FastAPI + Cognee)
-- **`POST /chat`** — graph‑aware recall → LLM generation with source‑node traceability
-- **`POST /ingest/text`** & **`POST /ingest/file`** — accept text/files, pass as data to `cognee.remember()`
-- **`GET /graph/visualize`** — returns nodes + edges with confidence weights extracted from edge metadata
-- **`POST /generate-title`** — lightweight LLM call to produce a short chat title
-- **`DELETE /reset`** — wipe the knowledge graph entirely
-- **Edge weight extraction** — reads `weight`/`score`/`confidence` from Cognee edge dictionaries; defaults to 0.5
+- **`POST /chat`** — graph‑aware recall → LLM generation.
+- **`POST /ingest/text`** & **`POST /ingest/file`** — accept text/files, pass to `cognee.remember()`.
+- **`GET /graph/visualize`** — returns nodes + edges with confidence weights.
+- **`POST /generate-title`** — LLM call to produce a short chat title.
+- **`DELETE /reset`** — wipe the knowledge graph entirely.
+- **`GET /health`** — backend status check.
 
 ---
 
 ## Directory Structure
 
 ```
-Cognee-Chat/
+Cognee-Chat-v2.0/
 ├── .env                      # LLM keys + backend config (gitignored)
 ├── .env.example              # Template with placeholder values
 ├── .gitignore
 ├── README.md
 ├── requirements.txt          # Python deps (FastAPI, Cognee, LiteLLM, …)
 ├── api.py                    # FastAPI application entry point
+├── start_backend.py          # Uvicorn launcher (writes .port)
 │
-├── app/                      # Next.js App Router
-│   ├── actions.ts            # Prisma server actions (CRUD)
-│   ├── globals.css           # glass utilities, React Flow overrides
-│   ├── layout.tsx            # root layout (dark theme, Inter, Toaster)
-│   └── page.tsx              # main page (sidebar, tabs, state orchestration)
+├── app/                      # Next.js 16 App Router
+│   ├── package.json
+│   ├── next.config.ts
+│   ├── tsconfig.json
+│   ├── postcss.config.mjs
+│   ├── globals.css           # CSS custom properties, theme variables
+│   ├── layout.tsx            # root layout (sidebar + main content)
+│   ├── page.tsx              # homepage (redirects to /chat)
+│   │
+│   ├── lib/
+│   │   ├── api.ts            # API client (cached base URL, all endpoints)
+│   │   └── db.ts             # better‑sqlite3 wrapper (session CRUD)
+│   │
+│   ├── app/
+│   │   ├── sidebar.tsx       # nav + session list + graph stats
+│   │   │
+│   │   ├── chat/page.tsx     # chat interface (markdown, streaming, sessions)
+│   │   ├── graph/page.tsx    # React Flow graph visualization
+│   │   ├── ingest/page.tsx   # text/file ingest + danger zone reset
+│   │   └── settings/page.tsx # model picker, theme toggle, backend status
+│   │
+│   └── api/
+│       ├── port/route.ts     # read .port file
+│       └── sessions/
+│           ├── route.ts      # GET (list) / POST (upsert) sessions
+│           └── [id]/route.ts # GET / DELETE single session
 │
-├── components/
-│   ├── chat-interface.tsx    # message list, FastAPI /chat, source badges
-│   ├── ingest-panel.tsx      # text/file ingest with drag‑and‑drop
-│   ├── mind-map.tsx          # React Flow graph, edge‑weight slider
-│   ├── schema-builder.tsx    # entity/relationship type builder
-│   └── ui/                   # Shadcn primitives (button, dialog, dropdown‑menu,
-│                              #   input, label, scroll‑area, slider, tabs,
-│                              #   textarea, toast, toaster, tooltip)
-│
-├── hooks/
-│   └── use-toast.ts          # Shadcn toast state management
-│
-├── lib/
-│   ├── prisma.ts             # Prisma singleton (globalForPrisma)
-│   └── utils.ts              # cn() helper (clsx + tailwind‑merge)
-│
-├── prisma/
-│   └── schema.prisma         # Session + Message models (SQLite)
-│
-├── scripts/
-│   ├── app.py                # Legacy Streamlit dashboard (optional)
-│   ├── test_api.py           # Smoke test suite
-│   ├── test_memory.py        # Memory test script
-│   └── test_pipeline.py      # Pipeline test script
-│
-├── next.config.js            # /api/* → http://127.0.0.1:8001 rewrites
-├── tailwind.config.ts        # custom colors, keyframes (pulse‑glow, …)
-├── tsconfig.json
-├── package.json
-└── postcss.config.js
+└── data/                     # SQLite database (auto‑created, gitignored)
+    └── cognee.db
 ```
 
 ---
@@ -138,58 +129,53 @@ Cognee-Chat/
 ### 1. Clone & Environment
 
 ```bash
-git clone https://github.com/Mr-Broccolli/Cognee-Chat.git
-cd Cognee-Chat
+git clone https://github.com/Mr-Broccolli/Cognee-Chat-v2.0.git
+cd Cognee-Chat-v2.0
 ```
 
-### 2. Frontend
-
-```bash
-npm install
-npm run dev                  # http://localhost:3000
-```
-
-### 3. Backend
+### 2. Backend
 
 ```bash
 python -m venv venv
-`.\venv\Scripts\Activate.ps1` (Windows) or `source venv/bin/activate` (macOS / Linux)
+.\venv\Scripts\Activate.ps1   # Windows
+source venv/bin/activate      # macOS / Linux
 pip install -r requirements.txt
-uvicorn api:app --host 127.0.0.1 --port 8001 --reload
+python start_backend.py
 ```
 
-The Next.js `/api/*` rewrite proxies all API calls to `http://127.0.0.1:8001` automatically.
+### 3. Frontend
+
+```bash
+cd app
+npm install
+npm run dev                    # http://localhost:3000
+```
 
 ### 4. Smoke Test
 
 1. Open `http://localhost:3000`.
-2. Click **Ingest** → paste a paragraph → hit *Ingest Text*.
-3. Switch to **Mind Map** — you should see nodes and edges.
-4. Go back to **Chat** → ask a question about what you ingested.
-5. Click a source badge under the AI reply — the mind map will pan‑zoom and flash the referenced node.
+2. Click **Ingest** → paste text → *Ingest Text*.
+3. Switch to **Graph** — nodes and edges should appear.
+4. Go to **Chat** → ask a question about what you ingested.
 
 ---
 
 ## Tech Stack
 
-| Layer    | Technology                                          |
+| Layer    | Technology                                         |
 |----------|-----------------------------------------------------|
-| UI       | Next.js 14, Tailwind CSS, Shadcn UI, Framer Motion  |
-| Graph    | React Flow 11                                       |
-| ORM      | Prisma 5 (SQLite)                                   |
+| UI       | Next.js 16, Tailwind CSS v4, React 19               |
+| Graph    | React Flow 11, dagre                                |
+| Sessions | better‑sqlite3 (direct, no ORM)                     |
 | Backend  | FastAPI, Uvicorn                                    |
 | RAG      | Cognee (open‑source graph‑RAG memory platform)      |
 | LLM      | LiteLLM (OpenRouter → Meta Llama 3.1)               |
 | Embed    | FastEmbed (BAAI/bge‑small‑en‑v1.5)                  |
-| DB       | SQLite                                              |
+| Graph DB | Kuzu                                                 |
+| Session  | SQLite                                              |
 
 ---
 
 ## License
-Apache 2.0 — see [LICENSE](LICENSE).
 
----
-
-<p align="center">
-  Built for <strong>The Hangover Hackathon</strong>
-</p>
+MIT — see [LICENSE](LICENSE).
